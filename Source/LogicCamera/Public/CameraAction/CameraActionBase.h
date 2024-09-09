@@ -22,21 +22,35 @@ class LOGICCAMERA_API UCameraActionBase : public UObject
 	GENERATED_BODY()
 
 public:
-	// 执行CA前，用于初始化参数和状态设置
 	virtual void Prepare(ALogicPlayerCameraManager* CamMgr);
-	
-	// 开始执行CA
 	virtual void Enter(ALogicPlayerCameraManager* CamMgr, const FCameraTrackValueCollection& CurTrackValues, OUT FCameraTrackValueCollection& OutTrackValues);
-	
-	// 执行CA的过程中
 	virtual void Update(ALogicPlayerCameraManager* CamMgr, float DeltaTime, const FCameraTrackValueCollection& CurTrackValues, OUT FCameraTrackValueCollection& OutTrackValues);
-	
-	// 打断CA，需要开启持续相机行为属性
 	virtual void Interrupt(ALogicPlayerCameraManager* CamMgr);
-	
-	// 恢复CA，需要开启持续相机行为属性
 	virtual void Resume(ALogicPlayerCameraManager* CamMgr);
-	
-	// 退出CA
 	virtual void Exit(ALogicPlayerCameraManager* CamMgr);
+
+
+	// 执行CA前，用于初始化参数和状态设置
+	UFUNCTION(BlueprintImplementableEvent, Category = "Logic Camera|Camera Action")
+	void BP_OnPrepare(ALogicPlayerCameraManager* CamMgr);
+
+	// 开始执行CA
+	UFUNCTION(BlueprintImplementableEvent, Category = "Logic Camera|Camera Action")
+	void BP_OnEnter(ALogicPlayerCameraManager* CamMgr, const FCameraTrackValueCollection& CurTrackValues, FCameraTrackValueCollection& OutTrackValues);
+
+	// 执行CA的过程中
+	UFUNCTION(BlueprintImplementableEvent, Category = "Logic Camera|Camera Action")
+	void BP_OnUpdate(ALogicPlayerCameraManager* CamMgr, float DeltaTime, const FCameraTrackValueCollection& CurTrackValues, FCameraTrackValueCollection& OutTrackValues);
+
+	// 打断CA，需要开启持续相机行为属性
+	UFUNCTION(BlueprintImplementableEvent, Category = "Logic Camera|Camera Action")
+	void BP_OnInterrupt(ALogicPlayerCameraManager* CamMgr);
+
+	// 恢复CA，需要开启持续相机行为属性
+	UFUNCTION(BlueprintImplementableEvent, Category = "Logic Camera|Camera Action")
+	void BP_OnResume(ALogicPlayerCameraManager* CamMgr);
+
+	// 退出CA
+	UFUNCTION(BlueprintImplementableEvent, Category = "Logic Camera|Camera Action")
+	void BP_OnExit(ALogicPlayerCameraManager* CamMgr);
 };
