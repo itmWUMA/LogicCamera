@@ -113,4 +113,16 @@ public:
 	// 持续时间，执行超出时间后即退出
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Track|End", meta = (EditCondition = "HowToEnd == EFinishCameraAnimBy::FixedDuration && !bIsInfinityDurationTime", EditConditionHides))
 	float Duration = 1.f;
+
+	// 是否为持续相机行为，即相机行为被打断后能否重新恢复
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Continuous")
+	bool bIsContinuous = false;
+
+	// 当相机行为因轨道占用（被其他CA打断）而恢复时，是否重新执行相机行为
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Continuous", meta = (EditCondition = "bIsContinuous", EditConditionHides))
+	bool bResumeByTrackOccupied = true;
+
+	// 当相机行为因其他扩展打断策略而恢复时，是否重新执行相机行为（扩展打断策略见LogicCameraDataConfig）
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Continuous", meta = (EditCondition = "bIsContinuous", EditConditionHides))
+	TArray<FName> ResumeByInterruptPolicies;
 };
