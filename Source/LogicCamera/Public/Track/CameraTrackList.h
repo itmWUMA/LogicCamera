@@ -6,22 +6,6 @@
 #include "Core/LogicCameraDefines.h"
 #include "CameraTrackList.generated.h"
 
-UENUM(BlueprintType)
-enum class ECameraTrackType : uint8
-{
-	Roll,
-	Pitch,
-	Yaw,
-	ArmLength,
-	SocketOffset_X,
-	SocketOffset_Y,
-	SocketOffset_Z,
-	TargetOffset_X,
-	TargetOffset_Y,
-	TargetOffset_Z,
-	FOV,
-};
-
 USTRUCT(BlueprintType)
 struct LOGICCAMERA_API FCameraTrackValueCollection
 {
@@ -42,6 +26,9 @@ struct LOGICCAMERA_API FCameraTrackValueCollection
 	
 	
 	bool Serialize(FArchive& Ar);
+
+	float operator[](unsigned int Index) const;
+	float& operator[](unsigned int Index);
 
 	UPROPERTY(BlueprintReadWrite,EditAnywhere)
 	float Roll = LC_INVALID_VALUE;

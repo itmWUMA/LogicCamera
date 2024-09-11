@@ -8,6 +8,34 @@
 #include "CameraActionBase.generated.h"
 
 class ALogicPlayerCameraManager;
+
+USTRUCT(BlueprintType)
+struct FCameraActionSpeedData
+{
+	GENERATED_BODY()
+
+	// 轨道值插值时，是否使用ConstInterpTo，否则使用InterpTo
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bUseConstInterp = false;
+
+	// 轨道值插值速度
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float InterpSpeed = 1.f;
+
+	// 乘方值，用于对插值曲线进行细调，乘方值越大初始轨道值变化更快
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (EditCondition = "!bUseConstInterp", EditConditionHides))
+	float Exponent = 1.f;
+};
+
+UENUM(BlueprintType)
+enum class EFinishCameraAnimBy: uint8
+{
+	// 相机动画播放固定时长
+	FixedDuration,
+	// 动画到达Target值
+	ArrivedTargetPos
+};
+
 /**
  * 相机行为
  * 
@@ -23,8 +51,8 @@ class LOGICCAMERA_API UCameraActionBase : public UObject
 
 public:
 	virtual void Prepare(ALogicPlayerCameraManager* CamMgr);
-	virtual void Enter(ALogicPlayerCameraManager* CamMgr, const FCameraTrackValueCollection& CurTrackValues, OUT FCameraTrackValueCollection& OutTrackValues);
-	virtual void Update(ALogicPlayerCameraManager* CamMgr, float DeltaTime, const FCameraTrackValueCollection& CurTrackValues, OUT FCameraTrackValueCollection& OutTrackValues);
+	virtual uint16 Enter(ALogicPlayerCameraManager* CamMgr, const FCameraTrackValueCollection& CurTrackValues, OUT FCameraTrackValueCollection& OutTrackValues);
+	virtual uint16 Update(ALogicPlayerCameraManager* CamMgr, float DeltaTime, const FCameraTrackValueCollection& CurTrackValues, OUT FCameraTrackValueCollection& OutTrackValues);
 	virtual void Interrupt(ALogicPlayerCameraManager* CamMgr);
 	virtual void Resume(ALogicPlayerCameraManager* CamMgr);
 	virtual void Exit(ALogicPlayerCameraManager* CamMgr);
@@ -53,4 +81,36 @@ public:
 	// 退出CA
 	UFUNCTION(BlueprintImplementableEvent, Category = "Logic Camera|Camera Action")
 	void BP_OnExit(ALogicPlayerCameraManager* CamMgr);
+
+private:
+	// 逐轨道计算理论轨道值，以及已经激活的轨道ID
+	uint16 GetTrackValue(const FCameraTrackValueCollection& TempOutTrackValues, FCameraTrackValueCollection& OutTrackValues);
+
+public:
+	// 插值速度
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Track|Speed")
+	FCameraActionSpeedData InterpSpeedData;
+
+	UPROPERTY(EditAnywhere, Category = "Track|Speed", meta = (InlineEditConditionToggle))
+	bool bUseDownInterpSpeed = false;
+
+	// 下行插值速度，当前值大于目标值时则使用该速度
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Track|Speed", meta = (EditCondition = "bUseDownInterpSpeed"))
+	FCameraActionSpeedData DownInterpSpeedData;
+
+	// 容差值，当前值距目标值小于容差值时，则认为到达目标
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Track|End", meta = (ClampMin = 0.1f, UIMin = 0.1f, ClampMax = 1.f, UIMax = 1.f))
+	float Tolerance = 1.f;
+
+	// 相机结束方式
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Track|End")
+	EFinishCameraAnimBy HowToEnd = EFinishCameraAnimBy::ArrivedTargetPos;
+
+	// 是否持续时间无限
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Track|End", meta = (EditCondition = "HowToEnd == EFinishCameraAnimBy::FixedDuration", EditConditionHides))
+	bool bIsInfinityDurationTime = false;
+
+	// 持续时间，执行超出时间后即退出
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Track|End", meta = (EditCondition = "HowToEnd == EFinishCameraAnimBy::FixedDuration && !bIsInfinityDurationTime", EditConditionHides))
+	float Duration = 1.f;
 };
