@@ -23,7 +23,7 @@ public class LogicCamera : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Core",
+				"Core", "GameplayTags",
 			}
 			);
 			

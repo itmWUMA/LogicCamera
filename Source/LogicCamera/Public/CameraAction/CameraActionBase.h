@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "Track/CameraTrackList.h"
 #include "UObject/NoExportTypes.h"
 #include "CameraActionBase.generated.h"
@@ -124,5 +125,5 @@ public:
 
 	// 当相机行为因其他扩展打断策略而恢复时，是否重新执行相机行为（扩展打断策略见LogicCameraDataConfig）
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Continuous", meta = (EditCondition = "bIsContinuous", EditConditionHides))
-	TArray<FName> ResumeByInterruptPolicies;
+	FGameplayTagContainer ResumeByInterruptPolicyTags;
 };

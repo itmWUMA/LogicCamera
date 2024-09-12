@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Core/LogicCameraDefines.h"
 
 /**
  * 
@@ -10,8 +11,12 @@
 class LOGICCAMERA_API FLogicCameraMathUtilities
 {
 public:
+	// 相机轨道值插值，相较于官方功能，增加了乘方值计算
 	template<typename T1, typename T2 , typename T3 , typename T4 >
 	static auto TrackInterpTo(const T1& Current, const T2& Target, T3 DeltaTime, T4 InterpSpeed, float Exponent);
+
+	// 根据轨道类型，计算占有的轨道位
+	static uint16 GetTracksBitValueFromTrackType(const TArray<ECameraTrackType>& TracksType);
 };
 
 template <typename T1, typename T2, typename T3, typename T4>
