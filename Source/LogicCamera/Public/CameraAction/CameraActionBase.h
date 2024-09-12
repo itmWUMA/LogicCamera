@@ -58,30 +58,36 @@ public:
 	virtual void Resume(ALogicPlayerCameraManager* CamMgr);
 	virtual void Exit(ALogicPlayerCameraManager* CamMgr);
 
-
+protected:
 	// 执行CA前，用于初始化参数和状态设置
-	UFUNCTION(BlueprintImplementableEvent, Category = "Logic Camera|Camera Action")
-	void BP_OnPrepare(ALogicPlayerCameraManager* CamMgr);
+	UFUNCTION(BlueprintNativeEvent, Category = "Logic Camera|Camera Action")
+	void OnPrepare(ALogicPlayerCameraManager* CamMgr);
+	virtual void OnPrepare_Implementation(ALogicPlayerCameraManager* CamMgr) { }
 
 	// 开始执行CA
-	UFUNCTION(BlueprintImplementableEvent, Category = "Logic Camera|Camera Action")
-	void BP_OnEnter(ALogicPlayerCameraManager* CamMgr, const FCameraTrackValueCollection& CurTrackValues, FCameraTrackValueCollection& OutTrackValues);
+	UFUNCTION(BlueprintNativeEvent, Category = "Logic Camera|Camera Action")
+	void OnEnter(ALogicPlayerCameraManager* CamMgr, const FCameraTrackValueCollection& CurTrackValues, FCameraTrackValueCollection& OutTrackValues);
+	virtual void OnEnter_Implementation(ALogicPlayerCameraManager* CamMgr, const FCameraTrackValueCollection& CurTrackValues, FCameraTrackValueCollection& OutTrackValues) { }
 
 	// 执行CA的过程中
-	UFUNCTION(BlueprintImplementableEvent, Category = "Logic Camera|Camera Action")
-	void BP_OnUpdate(ALogicPlayerCameraManager* CamMgr, float DeltaTime, const FCameraTrackValueCollection& CurTrackValues, FCameraTrackValueCollection& OutTrackValues);
+	UFUNCTION(BlueprintNativeEvent, Category = "Logic Camera|Camera Action")
+	void OnUpdate(ALogicPlayerCameraManager* CamMgr, float DeltaTime, const FCameraTrackValueCollection& CurTrackValues, FCameraTrackValueCollection& OutTrackValues);
+	virtual void OnUpdate_Implementation(ALogicPlayerCameraManager* CamMgr, float DeltaTime, const FCameraTrackValueCollection& CurTrackValues, FCameraTrackValueCollection& OutTrackValues) { }
 
 	// 打断CA，需要开启持续相机行为属性
-	UFUNCTION(BlueprintImplementableEvent, Category = "Logic Camera|Camera Action")
-	void BP_OnInterrupt(ALogicPlayerCameraManager* CamMgr);
+	UFUNCTION(BlueprintNativeEvent, Category = "Logic Camera|Camera Action")
+	void OnInterrupt(ALogicPlayerCameraManager* CamMgr);
+	virtual void OnInterrupt_Implementation(ALogicPlayerCameraManager* CamMgr) { }
 
 	// 恢复CA，需要开启持续相机行为属性
-	UFUNCTION(BlueprintImplementableEvent, Category = "Logic Camera|Camera Action")
-	void BP_OnResume(ALogicPlayerCameraManager* CamMgr);
+	UFUNCTION(BlueprintNativeEvent, Category = "Logic Camera|Camera Action")
+	void OnResume(ALogicPlayerCameraManager* CamMgr);
+	virtual void OnResume_Implementation(ALogicPlayerCameraManager* CamMgr) { }
 
 	// 退出CA
-	UFUNCTION(BlueprintImplementableEvent, Category = "Logic Camera|Camera Action")
-	void BP_OnExit(ALogicPlayerCameraManager* CamMgr);
+	UFUNCTION(BlueprintNativeEvent, Category = "Logic Camera|Camera Action")
+	void OnExit(ALogicPlayerCameraManager* CamMgr);
+	virtual void OnExit_Implementation(ALogicPlayerCameraManager* CamMgr) { }
 
 private:
 	// 逐轨道计算理论轨道值，以及已经激活的轨道ID

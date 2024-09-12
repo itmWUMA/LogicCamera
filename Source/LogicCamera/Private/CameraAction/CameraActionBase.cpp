@@ -5,14 +5,14 @@
 
 void UCameraActionBase::Prepare(ALogicPlayerCameraManager* CamMgr)
 {
-	BP_OnPrepare(CamMgr);
+	OnPrepare(CamMgr);
 }
 
 uint16 UCameraActionBase::Enter(ALogicPlayerCameraManager* CamMgr, const FCameraTrackValueCollection& CurTrackValues,
 	FCameraTrackValueCollection& OutTrackValues)
 {
 	FCameraTrackValueCollection TempOutTrackValues;
-	BP_OnEnter(CamMgr, CurTrackValues, TempOutTrackValues);
+	OnEnter(CamMgr, CurTrackValues, TempOutTrackValues);
 
 	return GetTrackValue(TempOutTrackValues, OutTrackValues);
 }
@@ -21,24 +21,24 @@ uint16 UCameraActionBase::Update(ALogicPlayerCameraManager* CamMgr, float DeltaT
 	const FCameraTrackValueCollection& CurTrackValues, FCameraTrackValueCollection& OutTrackValues)
 {
 	FCameraTrackValueCollection TempOutTrackValues;
-	BP_OnUpdate(CamMgr, DeltaTime, CurTrackValues, TempOutTrackValues);
+	OnUpdate(CamMgr, DeltaTime, CurTrackValues, TempOutTrackValues);
 
 	return GetTrackValue(TempOutTrackValues, OutTrackValues);
 }
 
 void UCameraActionBase::Interrupt(ALogicPlayerCameraManager* CamMgr)
 {
-	BP_OnInterrupt(CamMgr);
+	OnInterrupt(CamMgr);
 }
 
 void UCameraActionBase::Resume(ALogicPlayerCameraManager* CamMgr)
 {
-	BP_OnResume(CamMgr);
+	OnResume(CamMgr);
 }
 
 void UCameraActionBase::Exit(ALogicPlayerCameraManager* CamMgr)
 {
-	BP_OnExit(CamMgr);
+	OnExit(CamMgr);
 }
 
 uint16 UCameraActionBase::GetTrackValue(const FCameraTrackValueCollection& TempOutTrackValues,
