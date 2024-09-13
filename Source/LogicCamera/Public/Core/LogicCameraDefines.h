@@ -23,3 +23,6 @@ enum class ECameraTrackType : uint8
 
 #define LC_INVALID_VALUE BIG_NUMBER
 #define LC_CAMERA_TRACK_COUNT static_cast<uint8>(ECameraTrackType::Max)
+#define LC_DEFAUTL_CAMERA_ACTION_PRIORITY 100
+
+LOGICCAMERA_API DECLARE_LOG_CATEGORY_EXTERN(LogLC, Log, All);

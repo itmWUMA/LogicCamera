@@ -3,8 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CameraActionInstance.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "LogicCameraActionManager.generated.h"
+
+class ALogicPlayerCameraManager;
+class UCameraActionBase;
 
 /**
  * 相机行为的管理器
@@ -16,5 +20,31 @@ UCLASS()
 class LOGICCAMERA_API ULogicCameraActionManager : public UTickableWorldSubsystem
 {
 	GENERATED_BODY()
+
+public:
+	void OnInit(ALogicPlayerCameraManager* LogicPlayerCameraManager);
+	void OnReset();
+
+	// 生成相机行为实例，并添加到相机行为容器中进行管理
+	FGuid AddCameraAction(UCameraActionBase* InCameraAction, const FCameraActionInstanceGenerateInfo& GenerateInfo);
+
+	// 查找相机实例
+	FGuid FindCameraAction(UCameraActionBase* InCameraAction) const;
+
+	// 若已存在相机行为实例，则返回其ID，否则创建相机行为实例
+	FGuid FindOrAddCameraAction(UCameraActionBase* InCameraAction, const FCameraActionInstanceGenerateInfo& GenerateInfo);
+
+private:
+	// 生成CameraActionInstance，并赋予其唯一ID
+	TSharedPtr<FCameraActionInstance> GenerateCameraActionInstance(const UCameraActionBase* Source, const FCameraActionInstanceGenerateInfo& GenerateInfo) const;
+	int32 GetCameraActionMapPriority(const FCameraActionInstanceGenerateInfo& GenerateInfo) const;
+	static uint64 GetAndUpdateDynamicPriority();
+
+private:
+	// 相机实例的容器
+	TArray<TSharedPtr<FCameraActionInstance>> CameraActionList;
 	
+	TWeakObjectPtr<ALogicPlayerCameraManager> CamMgrCache = nullptr;
+	
+	static uint64 CameraActionDynamicPriority;
 };

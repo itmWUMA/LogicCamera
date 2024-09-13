@@ -3,3 +3,4 @@
 
 #include "Core/LogicCameraDefines.h"
 
+DEFINE_LOG_CATEGORY(LogLC);

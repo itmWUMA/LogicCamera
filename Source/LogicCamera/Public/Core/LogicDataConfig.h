@@ -27,6 +27,12 @@ class LOGICCAMERA_API ULogicDataConfig : public UDataAsset
 	GENERATED_BODY()
 
 public:
+	ULogicDataConfig();
+
+public:
 	UPROPERTY(EditAnywhere, Category = "Camera Action")
 	TMap<FGameplayTag, FCameraActionInterruptPolicyData> CameraActionInterruptPolicies;
+
+	UPROPERTY(EditAnywhere, Category = "Camera Action", meta = (ClampMin = 0, UIMin = 0))
+	TMap<FName, int32> CameraActionPriorityMap;
 };
