@@ -9,6 +9,15 @@
 
 class UCameraActionInterruptPolicy;
 
+USTRUCT()
+struct FCameraActionInterruptPolicyData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, Instanced)
+	TObjectPtr<UCameraActionInterruptPolicy> InterruptPolicy;
+};
+
 /**
  * 
  */
@@ -19,5 +28,5 @@ class LOGICCAMERA_API ULogicDataConfig : public UDataAsset
 
 public:
 	UPROPERTY(EditAnywhere, Category = "Camera Action")
-	TMap<FGameplayTag, TSubclassOf<UCameraActionInterruptPolicy>> CameraActionInterruptPolicies;
+	TMap<FGameplayTag, FCameraActionInterruptPolicyData> CameraActionInterruptPolicies;
 };

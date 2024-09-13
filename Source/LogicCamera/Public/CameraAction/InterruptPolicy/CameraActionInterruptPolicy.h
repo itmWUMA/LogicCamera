@@ -14,7 +14,7 @@ class ALogicPlayerCameraManager;
  * 相机的打断策略，用于扩展打断相机行为的情况，如输入等
  * 需要实现打断检查接口（CheckInterruptCondition）
  */
-UCLASS(Abstract)
+UCLASS(Abstract, EditInlineNew, Blueprintable, BlueprintType)
 class LOGICCAMERA_API UCameraActionInterruptPolicy : public UObject
 {
 	GENERATED_BODY()
