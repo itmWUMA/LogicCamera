@@ -17,6 +17,12 @@ class LOGICCAMERA_API ALogicPlayerCameraManager : public APlayerCameraManager
 	GENERATED_BODY()
 
 public:
+	virtual void AssignViewTarget(AActor* NewTarget, FTViewTarget& VT, struct FViewTargetTransitionParams TransitionParams) override;
+	
+protected:
+	virtual void BeginPlay() override;
+
+public:
 	UPROPERTY(EditDefaultsOnly, Category = "Settings")
 	TObjectPtr<ULogicDataConfig> LogicCameraSettings;
 };

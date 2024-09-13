@@ -10,6 +10,12 @@
 
 uint64 ULogicCameraActionManager::CameraActionDynamicPriority = 0;
 
+ULogicCameraActionManager* ULogicCameraActionManager::Get(const UObject* WorldContext)
+{
+	UWorld* World = IsValid(WorldContext) ? WorldContext->GetWorld() : nullptr;
+	return IsValid(World) ? World->GetSubsystem<ULogicCameraActionManager>() : nullptr;
+}
+
 void ULogicCameraActionManager::OnInit(ALogicPlayerCameraManager* LogicPlayerCameraManager)
 {
 	CamMgrCache = MakeWeakObjectPtr<ALogicPlayerCameraManager>(LogicPlayerCameraManager);
@@ -17,7 +23,9 @@ void ULogicCameraActionManager::OnInit(ALogicPlayerCameraManager* LogicPlayerCam
 
 void ULogicCameraActionManager::OnReset()
 {
+	CameraActionList.Reset();
 	CamMgrCache.Reset();
+	CameraActionDynamicPriority = 0;
 }
 
 FGuid ULogicCameraActionManager::AddCameraAction(UCameraActionBase* InCameraAction,

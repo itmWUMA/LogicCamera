@@ -22,6 +22,8 @@ class LOGICCAMERA_API ULogicCameraActionManager : public UTickableWorldSubsystem
 	GENERATED_BODY()
 
 public:
+	static ULogicCameraActionManager* Get(const UObject* WorldContext);
+	
 	void OnInit(ALogicPlayerCameraManager* LogicPlayerCameraManager);
 	void OnReset();
 
