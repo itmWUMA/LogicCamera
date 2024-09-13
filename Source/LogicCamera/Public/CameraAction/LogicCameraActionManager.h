@@ -27,6 +27,9 @@ public:
 	void OnInit(ALogicPlayerCameraManager* LogicPlayerCameraManager);
 	void OnReset();
 
+	virtual void Tick(float DeltaTime) override;
+	virtual TStatId GetStatId() const override;
+
 	// 生成相机行为实例，并添加到相机行为容器中进行管理
 	FGuid AddCameraAction(UCameraActionBase* InCameraAction, const FCameraActionInstanceGenerateInfo& GenerateInfo);
 

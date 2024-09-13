@@ -28,8 +28,18 @@ void ULogicCameraActionManager::OnReset()
 	CameraActionDynamicPriority = 0;
 }
 
+void ULogicCameraActionManager::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+}
+
+TStatId ULogicCameraActionManager::GetStatId() const
+{
+	RETURN_QUICK_DECLARE_CYCLE_STAT(ULogicCameraActionManager, STATGROUP_Tickables);
+}
+
 FGuid ULogicCameraActionManager::AddCameraAction(UCameraActionBase* InCameraAction,
-	const FCameraActionInstanceGenerateInfo& GenerateInfo)
+                                                 const FCameraActionInstanceGenerateInfo& GenerateInfo)
 {
 	if (!IsValid(InCameraAction))
 		return FGuid();
