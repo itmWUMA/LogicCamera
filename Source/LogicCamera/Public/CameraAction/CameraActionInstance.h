@@ -3,12 +3,18 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Core/LogicCameraDefines.h"
 
 class UCameraActionBase;
 
-struct FCameraActionInstanceGenerateInfo
+struct FCameraActionBindData
 {
-	FName PriorityName = TEXT("Default");
+	FName PriorityName = LC_DEFAULT_CAMERA_ACTION_PRIORITY_NAME;
+
+	// 生命周期回调，当运行至CA相应的生命周期后会触发
+	FSimpleDelegate OnExecute;
+	FSimpleDelegate OnInterrupted;
+	FSimpleDelegate OnFinished;
 };
 
 /**
@@ -41,14 +47,17 @@ enum class ECameraActionState
 class LOGICCAMERA_API FCameraActionInstance
 {
 public:
-	FCameraActionInstance(const UCameraActionBase* Source, const FCameraActionInstanceGenerateInfo& InGenerateInfo,
+	FCameraActionInstance(UCameraActionBase* Source, const FCameraActionBindData& InBindingInfo,
 		const FGuid& InID, uint32 MapPriority, uint32 DynamicPriority);
 	bool operator==(const FCameraActionInstance& Rhs) const;
 
+	void UnbindAllDelegates();
+
 public:
-	TWeakObjectPtr<const UCameraActionBase> CameraActionCache = nullptr;
+	TWeakObjectPtr<UCameraActionBase> CameraActionCache = nullptr;
 	FGuid ID;
-	FCameraActionInstanceGenerateInfo GenerateInfo;
+	FCameraActionBindData BindingInfo;
 	ECameraActionState CurrentState = ECameraActionState::Awake;
 	CameraActionPriority Priority;
+	uint16 ActiveTracks = 0;
 };

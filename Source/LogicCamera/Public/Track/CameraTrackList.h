@@ -6,6 +6,8 @@
 #include "Core/LogicCameraDefines.h"
 #include "CameraTrackList.generated.h"
 
+class UCameraActionBase;
+
 USTRUCT(BlueprintType)
 struct LOGICCAMERA_API FCameraTrackValueCollection
 {
@@ -71,5 +73,7 @@ UCLASS()
 class LOGICCAMERA_API UCameraTrackList : public UObject
 {
 	GENERATED_BODY()
-	
+
+public:
+	void StopTracks(UCameraActionBase* InCameraAction, uint16 ActiveTracksID);
 };

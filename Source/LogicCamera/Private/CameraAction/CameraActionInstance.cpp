@@ -4,12 +4,12 @@
 #include "CameraAction/CameraActionInstance.h"
 #include "CameraAction/CameraActionBase.h"
 
-FCameraActionInstance::FCameraActionInstance(const UCameraActionBase* Source,
-	const FCameraActionInstanceGenerateInfo& InGenerateInfo, const FGuid& InID, uint32 MapPriority,
+FCameraActionInstance::FCameraActionInstance(UCameraActionBase* Source,
+	const FCameraActionBindData& InBindingInfo, const FGuid& InID, uint32 MapPriority,
 	uint32 DynamicPriority)
 {
-	CameraActionCache = MakeWeakObjectPtr<const UCameraActionBase>(Source);
-    GenerateInfo = InGenerateInfo;
+	CameraActionCache = MakeWeakObjectPtr<UCameraActionBase>(Source);
+    BindingInfo = InBindingInfo;
     CurrentState = ECameraActionState::Awake;
     ID = InID;
 	
@@ -20,4 +20,11 @@ FCameraActionInstance::FCameraActionInstance(const UCameraActionBase* Source,
 bool FCameraActionInstance::operator==(const FCameraActionInstance& Rhs) const
 {
 	return ID == Rhs.ID;
+}
+
+void FCameraActionInstance::UnbindAllDelegates()
+{
+	BindingInfo.OnExecute.Unbind();
+	BindingInfo.OnFinished.Unbind();
+	BindingInfo.OnInterrupted.Unbind();
 }

@@ -41,3 +41,8 @@ float& FCameraTrackValueCollection::operator[](unsigned int Index)
 	float* ErrorReturn = nullptr;
 	return *ErrorReturn;
 }
+
+void UCameraTrackList::StopTracks(UCameraActionBase* InCameraAction, uint16 ActiveTracksID)
+{
+	
+}

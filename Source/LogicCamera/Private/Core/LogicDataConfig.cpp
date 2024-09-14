@@ -7,5 +7,5 @@
 
 ULogicDataConfig::ULogicDataConfig()
 {
-	CameraActionPriorityMap.Add(TEXT("Default"), LC_DEFAUTL_CAMERA_ACTION_PRIORITY);
+	CameraActionPriorityMap.Add(TEXT("Default"), LC_DEFAULT_CAMERA_ACTION_PRIORITY);
 }
