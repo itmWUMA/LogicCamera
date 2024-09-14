@@ -138,7 +138,52 @@ void ULogicCameraActionManager::UpdatePendingRemoveCameraAction()
 		FinishCameraActionInternal(PendingToRemoveCA);
 }
 
-void ULogicCameraActionManager::FinishCameraActionInternal(TSharedPtr<FCameraActionInstance> InCameraActionInstance)
+void ULogicCameraActionManager::UpdateCameraAction(float DeltaTime)
+{
+	SortCameraActionList();
+
+	for (const TSharedPtr<FCameraActionInstance>& CurFrameInst : CurFrameCameraAnimInstance)
+	{
+		if (!CurFrameInst->CameraActionCache.IsValid())
+		{
+			CurFrameInst->CurrentState = ECameraActionState::Finished;
+			continue;
+		}
+
+		UCameraActionBase* CurFrameCameraAction = CurFrameInst->CameraActionCache.Get();
+		if (CurFrameInst->CurrentState == ECameraActionState::Awake)
+		{
+			CurFrameCameraAction->Prepare(CamMgrCache.Get());
+			CurFrameInst->BindParams();
+			EnterCameraActionInternal(CurFrameInst);
+		}
+	}
+}
+
+void ULogicCameraActionManager::SortCameraActionList()
+{
+	// 优先级从高到低排序
+	CameraActionList.Sort([](const TSharedPtr<FCameraActionInstance>& Left, const TSharedPtr<FCameraActionInstance>& Right) -> bool
+	{
+		return Left->Priority.Priority > Right->Priority.Priority;
+	});
+
+	// 得到所有待执行的相机行为
+	bool bTrackCompletelyOccupied = false;
+	for (const TSharedPtr<FCameraActionInstance>& Inst : CameraActionList)
+	{
+		if (bTrackCompletelyOccupied)
+		{
+			InterruptCameraActionInternal(Inst);
+			continue;
+		}
+		CurFrameCameraAnimInstance.Push(Inst);
+		if (Inst->BindingInfo.bOccupyAllTracks)
+			bTrackCompletelyOccupied = true;
+	}
+}
+
+void ULogicCameraActionManager::FinishCameraActionInternal(const TSharedPtr<FCameraActionInstance>& InCameraActionInstance)
 {
 	if (InCameraActionInstance->CurrentState != ECameraActionState::Finished)
 		return;
@@ -148,4 +193,35 @@ void ULogicCameraActionManager::FinishCameraActionInternal(TSharedPtr<FCameraAct
 		InCameraActionInstance->CameraActionCache->Exit(CamMgrCache.Get());
 	CameraTrackList->StopTracks(InCameraActionInstance->CameraActionCache.Get(), InCameraActionInstance->ActiveTracks);
 	InCameraActionInstance->UnbindAllDelegates();
+}
+
+void ULogicCameraActionManager::InterruptCameraActionInternal(const TSharedPtr<FCameraActionInstance>& InCameraActionInstance)
+{
+	if (InCameraActionInstance->CameraActionCache.IsValid() && InCameraActionInstance->CameraActionCache->bIsContinuous)
+	{
+		if (InCameraActionInstance->CameraActionCache->bResumeByTrackOccupied)
+		{
+			InCameraActionInstance->CurrentState = ECameraActionState::Interrupted;
+			return;
+		}
+	}
+
+	InCameraActionInstance->CurrentState = ECameraActionState::Finished;
+}
+
+void ULogicCameraActionManager::EnterCameraActionInternal(const TSharedPtr<FCameraActionInstance>& InCameraActionInstance)
+{
+	if (!InCameraActionInstance->CameraActionCache.IsValid())
+		return;
+
+	FCameraTrackValueCollection CurTrackValues;
+	if (!CameraTrackList->GetCurrentTrackValues(CurTrackValues))
+		return;
+
+	FCameraTrackValueCollection OutTrackValues;
+	uint16 ActiveTracks = InCameraActionInstance->CameraActionCache->Enter(CamMgrCache.Get(), CurTrackValues, OutTrackValues);
+	CameraTrackList->ActiveTracks(InCameraActionInstance->CameraActionCache.Get(), ActiveTracks, OutTrackValues, InCameraActionInstance->GetPriority());
+	InCameraActionInstance->ActiveTracks = ActiveTracks;
+	InCameraActionInstance->BindingInfo.OnExecute.ExecuteIfBound();
+	InCameraActionInstance->CurrentState = ECameraActionState::Executing;
 }

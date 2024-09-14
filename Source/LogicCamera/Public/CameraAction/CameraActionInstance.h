@@ -10,6 +10,7 @@ class UCameraActionBase;
 struct FCameraActionBindData
 {
 	FName PriorityName = LC_DEFAULT_CAMERA_ACTION_PRIORITY_NAME;
+	bool bOccupyAllTracks = false;
 
 	// 生命周期回调，当运行至CA相应的生命周期后会触发
 	FSimpleDelegate OnExecute;
@@ -51,7 +52,9 @@ public:
 		const FGuid& InID, uint32 MapPriority, uint32 DynamicPriority);
 	bool operator==(const FCameraActionInstance& Rhs) const;
 
+	void BindParams();
 	void UnbindAllDelegates();
+	FORCEINLINE uint64 GetPriority() const { return Priority.Priority; }
 
 public:
 	TWeakObjectPtr<UCameraActionBase> CameraActionCache = nullptr;
@@ -60,4 +63,5 @@ public:
 	ECameraActionState CurrentState = ECameraActionState::Awake;
 	CameraActionPriority Priority;
 	uint16 ActiveTracks = 0;
+	float LeftEffectiveTime = 0.f;
 };

@@ -22,6 +22,16 @@ bool FCameraActionInstance::operator==(const FCameraActionInstance& Rhs) const
 	return ID == Rhs.ID;
 }
 
+void FCameraActionInstance::BindParams()
+{
+	if (!CameraActionCache.IsValid())
+	{
+		UE_LOG(LogLC, Warning, TEXT("Invalid camera action cache when binding params(FCameraActionInstance[%s])"), *ID.ToString());
+		return;
+	}
+	LeftEffectiveTime = CameraActionCache->bIsInfinityDurationTime ? LC_INVALID_VALUE : CameraActionCache->Duration;
+}
+
 void FCameraActionInstance::UnbindAllDelegates()
 {
 	BindingInfo.OnExecute.Unbind();

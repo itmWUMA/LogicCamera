@@ -75,5 +75,7 @@ class LOGICCAMERA_API UCameraTrackList : public UObject
 	GENERATED_BODY()
 
 public:
+	bool GetCurrentTrackValues(FCameraTrackValueCollection& OutParams) const;
+	void ActiveTracks(const UCameraActionBase* InCameraAction, uint16& ActiveTracks, const FCameraTrackValueCollection& TrackValues, uint64 Priority);
 	void StopTracks(UCameraActionBase* InCameraAction, uint16 ActiveTracksID);
 };

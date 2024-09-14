@@ -42,6 +42,17 @@ float& FCameraTrackValueCollection::operator[](unsigned int Index)
 	return *ErrorReturn;
 }
 
+bool UCameraTrackList::GetCurrentTrackValues(FCameraTrackValueCollection& OutParams) const
+{
+	return true;
+}
+
+void UCameraTrackList::ActiveTracks(const UCameraActionBase* InCameraAction, uint16& ActiveTracks,
+	const FCameraTrackValueCollection& TrackValues, uint64 Priority)
+{
+	
+}
+
 void UCameraTrackList::StopTracks(UCameraActionBase* InCameraAction, uint16 ActiveTracksID)
 {
 	

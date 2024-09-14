@@ -45,18 +45,22 @@ private:
 	TSharedPtr<FCameraActionInstance> GenerateCameraActionInstance(UCameraActionBase* Source, const FCameraActionBindData& BindingInfo) const;
 	int32 GetCameraActionMapPriority(const FCameraActionBindData& BindingInfo) const;
 	static uint32 GetAndUpdateDynamicPriority();
-
-	// 将所有已结束的相机行为移除
+	
 	void UpdatePendingRemoveCameraAction();
+	void UpdateCameraAction(float DeltaTime);
 
-	void FinishCameraActionInternal(TSharedPtr<FCameraActionInstance> InCameraActionInstance);
+	void SortCameraActionList();
+
+	void FinishCameraActionInternal(const TSharedPtr<FCameraActionInstance>& InCameraActionInstance);
+	void InterruptCameraActionInternal(const TSharedPtr<FCameraActionInstance>& InCameraActionInstance);
+	void EnterCameraActionInternal(const TSharedPtr<FCameraActionInstance>& InCameraActionInstance);
 
 private:
 	// 相机实例的容器
 	TArray<TSharedPtr<FCameraActionInstance>> CameraActionList;
 	TObjectPtr<UCameraTrackList> CameraTrackList;
-	
 	TWeakObjectPtr<ALogicPlayerCameraManager> CamMgrCache = nullptr;
+	TArray<TSharedPtr<FCameraActionInstance>> CurFrameCameraAnimInstance;
 	
 	static uint32 CameraActionDynamicPriority;
 };
