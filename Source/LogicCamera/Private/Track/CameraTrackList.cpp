@@ -53,7 +53,23 @@ void UCameraTrackList::ActiveTracks(const UCameraActionBase* InCameraAction, uin
 	
 }
 
+void UCameraTrackList::UpdateTracks(const UCameraActionBase* InCameraAction, uint16& ActiveTracks,
+	const FCameraTrackValueCollection& TrackValues, uint64 Priority)
+{
+	
+}
+
 void UCameraTrackList::StopTracks(UCameraActionBase* InCameraAction, uint16 ActiveTracksID)
 {
 	
+}
+
+uint16 UCameraTrackList::CheckTracksOccupy(uint16 ActiveTracks, uint64 Priority) const
+{
+	return 0;
+}
+
+bool UCameraTrackList::CheckTracksAllArrived(uint16 ActiveTracks) const
+{
+	return false;
 }

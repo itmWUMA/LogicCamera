@@ -54,6 +54,7 @@ private:
 	void FinishCameraActionInternal(const TSharedPtr<FCameraActionInstance>& InCameraActionInstance);
 	void InterruptCameraActionInternal(const TSharedPtr<FCameraActionInstance>& InCameraActionInstance);
 	void EnterCameraActionInternal(const TSharedPtr<FCameraActionInstance>& InCameraActionInstance);
+	void UpdateCameraActionInternal(const TSharedPtr<FCameraActionInstance>& InCameraActionInstance, float DeltaTime);
 
 private:
 	// 相机实例的容器
@@ -61,6 +62,7 @@ private:
 	TObjectPtr<UCameraTrackList> CameraTrackList;
 	TWeakObjectPtr<ALogicPlayerCameraManager> CamMgrCache = nullptr;
 	TArray<TSharedPtr<FCameraActionInstance>> CurFrameCameraAnimInstance;
+	TArray<TSharedPtr<FCameraActionInstance>> PreFrameCameraAnimInstance;
 	
 	static uint32 CameraActionDynamicPriority;
 };

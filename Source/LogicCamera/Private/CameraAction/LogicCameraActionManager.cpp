@@ -35,6 +35,7 @@ void ULogicCameraActionManager::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	UpdatePendingRemoveCameraAction();
+	UpdateCameraAction(DeltaTime);
 }
 
 TStatId ULogicCameraActionManager::GetStatId() const
@@ -151,13 +152,31 @@ void ULogicCameraActionManager::UpdateCameraAction(float DeltaTime)
 		}
 
 		UCameraActionBase* CurFrameCameraAction = CurFrameInst->CameraActionCache.Get();
+		
 		if (CurFrameInst->CurrentState == ECameraActionState::Awake)
 		{
 			CurFrameCameraAction->Prepare(CamMgrCache.Get());
 			CurFrameInst->BindParams();
 			EnterCameraActionInternal(CurFrameInst);
 		}
+
+		if (CurFrameInst->CurrentState == ECameraActionState::Executing)
+		{
+			UpdateCameraActionInternal(CurFrameInst, DeltaTime);
+		}
 	}
+
+	for (const TSharedPtr<FCameraActionInstance>& PreFrameInst : PreFrameCameraAnimInstance)
+	{
+		if (PreFrameInst->CurrentState == ECameraActionState::Executing && !CurFrameCameraAnimInstance.Contains(PreFrameCameraAnimInstance))
+		{
+			if (PreFrameInst->CurrentState == ECameraActionState::Finished)
+				continue;
+			InterruptCameraActionInternal(PreFrameInst);
+		}
+	}
+
+	::Swap(PreFrameCameraAnimInstance, CurFrameCameraAnimInstance);
 }
 
 void ULogicCameraActionManager::SortCameraActionList()
@@ -170,6 +189,7 @@ void ULogicCameraActionManager::SortCameraActionList()
 
 	// 得到所有待执行的相机行为
 	bool bTrackCompletelyOccupied = false;
+	CurFrameCameraAnimInstance.Reset();
 	for (const TSharedPtr<FCameraActionInstance>& Inst : CameraActionList)
 	{
 		if (bTrackCompletelyOccupied)
@@ -211,7 +231,7 @@ void ULogicCameraActionManager::InterruptCameraActionInternal(const TSharedPtr<F
 
 void ULogicCameraActionManager::EnterCameraActionInternal(const TSharedPtr<FCameraActionInstance>& InCameraActionInstance)
 {
-	if (!InCameraActionInstance->CameraActionCache.IsValid())
+	if (!InCameraActionInstance->CameraActionCache.IsValid() || InCameraActionInstance->CurrentState != ECameraActionState::Awake)
 		return;
 
 	FCameraTrackValueCollection CurTrackValues;
@@ -224,4 +244,39 @@ void ULogicCameraActionManager::EnterCameraActionInternal(const TSharedPtr<FCame
 	InCameraActionInstance->ActiveTracks = ActiveTracks;
 	InCameraActionInstance->BindingInfo.OnExecute.ExecuteIfBound();
 	InCameraActionInstance->CurrentState = ECameraActionState::Executing;
+}
+
+void ULogicCameraActionManager::UpdateCameraActionInternal(const TSharedPtr<FCameraActionInstance>& InCameraActionInstance, float DeltaTime)
+{
+	if (!InCameraActionInstance->CameraActionCache.IsValid() || InCameraActionInstance->CurrentState != ECameraActionState::Executing)
+		return;
+	
+	FCameraTrackValueCollection CurTrackValues;
+	if (!CameraTrackList->GetCurrentTrackValues(CurTrackValues))
+		return;
+
+	FCameraTrackValueCollection OutTrackValues;
+	uint16 ActiveTracks = InCameraActionInstance->CameraActionCache->Update(CamMgrCache.Get(), DeltaTime, CurTrackValues, OutTrackValues);
+	CameraTrackList->UpdateTracks(InCameraActionInstance->CameraActionCache.Get(), ActiveTracks, OutTrackValues, InCameraActionInstance->GetPriority());
+	InCameraActionInstance->ActiveTracks |= ActiveTracks;
+
+	// 保底更新轨道占用（可能存在未实现Update但实现Enter的情况）
+	uint16 OccupiedTracks = CameraTrackList->CheckTracksOccupy(InCameraActionInstance->ActiveTracks, InCameraActionInstance->GetPriority());
+	InCameraActionInstance->ActiveTracks &= ~OccupiedTracks;
+
+	// 当所有轨道被占用则标记为被打断
+	if (InCameraActionInstance->ActiveTracks == 0)
+	{
+		InterruptCameraActionInternal(InCameraActionInstance);
+		return;
+	}
+
+	// 当轨道值全部到达目标，则相机行为执行结束
+	if (CameraTrackList->CheckTracksAllArrived(InCameraActionInstance->ActiveTracks))
+	{
+		if (InCameraActionInstance->CameraActionCache->HowToEnd == EFinishCameraAnimBy::ArrivedTargetPos)
+		{
+			InCameraActionInstance->CurrentState = ECameraActionState::Finished;
+		}
+	}
 }
