@@ -72,13 +72,35 @@ FGuid ULogicCameraActionManager::FindCameraAction(UCameraActionBase* InCameraAct
 	return InstancePtr ? (*InstancePtr)->ID : FGuid();
 }
 
+TSharedPtr<FCameraActionInstance> ULogicCameraActionManager::FindCameraAction(const FGuid& InGuid) const
+{
+	if (!InGuid.IsValid())
+		return nullptr;
+
+	const TSharedPtr<FCameraActionInstance>* InstancePtr = CameraActionList.FindByPredicate([&InGuid](const TSharedPtr<FCameraActionInstance>& InInstance) -> bool
+	{
+		return InInstance->ID == InGuid;
+	});
+
+	return InstancePtr ? (*InstancePtr) : nullptr;
+}
+
 FGuid ULogicCameraActionManager::FindOrAddCameraAction(UCameraActionBase* InCameraAction,
-	const FCameraActionBindData& BindingInfo)
+                                                       const FCameraActionBindData& BindingInfo)
 {
 	FGuid ID = FindCameraAction(InCameraAction);
 	if (ID.IsValid())
 		return ID;
 	return AddCameraAction(InCameraAction, BindingInfo);
+}
+
+void ULogicCameraActionManager::RemoveCameraAction(const FGuid& InGuid)
+{
+	if (InGuid.IsValid())
+	{
+		if (TSharedPtr<FCameraActionInstance> Inst = FindCameraAction(InGuid); Inst.IsValid())
+			Inst->CurrentState = ECameraActionState::Finished;
+	}
 }
 
 TSharedPtr<FCameraActionInstance> ULogicCameraActionManager::GenerateCameraActionInstance(
@@ -134,7 +156,7 @@ void ULogicCameraActionManager::UpdatePendingRemoveCameraAction()
 	// 拿到所有待移除的CA，并清空容器中待移除的CA
 	TArray<TSharedPtr<FCameraActionInstance>> PendingToRemoveCameraActions;
 	uint32 Length = CameraActionList.Num();
-	for (LIndex = 0, RIndex = Length - 1; LIndex < Length - 1 && CameraActionList[Length - LIndex - 1]->CurrentState == ECameraActionState::Finished; ++LIndex)
+	for (LIndex = 0, RIndex = Length - 1; LIndex < Length && CameraActionList[Length - LIndex - 1]->CurrentState == ECameraActionState::Finished; ++LIndex)
 		PendingToRemoveCameraActions.Emplace(CameraActionList[Length - LIndex - 1]);
 	CameraActionList.RemoveAt(Length - LIndex, LIndex);
 
@@ -176,7 +198,7 @@ void ULogicCameraActionManager::UpdateCameraAction(float DeltaTime)
 		{
 			if (PreFrameInst->CurrentState == ECameraActionState::Finished)
 				continue;
-			InterruptCameraActionInternal(PreFrameInst);
+			InterruptCameraActionForTracks(PreFrameInst);
 		}
 	}
 
@@ -219,7 +241,7 @@ void ULogicCameraActionManager::SortCameraActionList()
 	{
 		if (bTrackCompletelyOccupied)
 		{
-			InterruptCameraActionInternal(Inst);
+			InterruptCameraActionForTracks(Inst);
 			continue;
 		}
 		CurFrameCameraAnimInstance.Push(Inst);
@@ -240,7 +262,7 @@ void ULogicCameraActionManager::FinishCameraActionInternal(const TSharedPtr<FCam
 	InCameraActionInstance->UnbindAllDelegates();
 }
 
-void ULogicCameraActionManager::InterruptCameraActionInternal(const TSharedPtr<FCameraActionInstance>& InCameraActionInstance)
+void ULogicCameraActionManager::InterruptCameraActionForTracks(const TSharedPtr<FCameraActionInstance>& InCameraActionInstance)
 {
 	if (InCameraActionInstance->CameraActionCache.IsValid() && InCameraActionInstance->CameraActionCache->bIsContinuous)
 	{
@@ -312,7 +334,7 @@ void ULogicCameraActionManager::UpdateCameraActionInternal(const TSharedPtr<FCam
 	// 当所有轨道被占用则标记为被打断
 	if (InCameraActionInstance->ActiveTracks == 0)
 	{
-		InterruptCameraActionInternal(InCameraActionInstance);
+		InterruptCameraActionForTracks(InCameraActionInstance);
 		return;
 	}
 

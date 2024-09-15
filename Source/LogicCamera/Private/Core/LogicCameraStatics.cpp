@@ -5,7 +5,7 @@
 
 #include "ProxyCamera/CameraBlackboard.h"
 
-float ULogicCameraStatics::GetValueFromTrackCollecton(const FCameraTrackValueCollection& TrackValues,
+float ULogicCameraStatics::GetValueFromTrackCollection(const FCameraTrackValueCollection& TrackValues,
                                                       ECameraTrackType TrackType)
 {
 	uint8 Index = 0;

@@ -23,13 +23,13 @@ bool FCameraTrackValueCollection::Serialize(FArchive& Ar)
 
 float FCameraTrackValueCollection::operator[](unsigned int Index) const
 {
-	ensureMsgf((Index >= 1) && (Index < LC_CAMERA_TRACK_COUNT - 1), TEXT("Invalid track index [%d]"), Index);
-	return ULogicCameraStatics::GetValueFromTrackCollecton(*this, static_cast<ECameraTrackType>(Index));
+	ensureMsgf(Index <= LC_CAMERA_TRACK_COUNT - 1, TEXT("Invalid track index [%d]"), Index);
+	return ULogicCameraStatics::GetValueFromTrackCollection(*this, static_cast<ECameraTrackType>(Index));
 }
 
 float& FCameraTrackValueCollection::operator[](unsigned int Index)
 {
-	ensureMsgf((Index >= 1) && (Index < LC_CAMERA_TRACK_COUNT - 1), TEXT("Invalid track index [%d]"), Index);
+	ensureMsgf(Index <= LC_CAMERA_TRACK_COUNT - 1, TEXT("Invalid track index [%d]"), Index);
 	uint8 SearchIndex = 0;
 	for (TFieldIterator<FFloatProperty> i(FCameraTrackValueCollection::StaticStruct()); i; ++i)
 	{

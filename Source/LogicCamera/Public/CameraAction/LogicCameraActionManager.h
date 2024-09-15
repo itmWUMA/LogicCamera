@@ -36,9 +36,13 @@ public:
 
 	// 查找相机实例
 	FGuid FindCameraAction(UCameraActionBase* InCameraAction) const;
+	TSharedPtr<FCameraActionInstance> FindCameraAction(const FGuid& InGuid) const;
 
 	// 若已存在相机行为实例，则返回其ID，否则创建相机行为实例
 	FGuid FindOrAddCameraAction(UCameraActionBase* InCameraAction, const FCameraActionBindData& BindingInfo);
+
+	// 移除相机实例
+	void RemoveCameraAction(const FGuid& InGuid);
 
 private:
 	// 生成CameraActionInstance，并赋予其唯一ID
@@ -51,7 +55,7 @@ private:
 	
 	void SortCameraActionList();
 	void FinishCameraActionInternal(const TSharedPtr<FCameraActionInstance>& InCameraActionInstance);
-	void InterruptCameraActionInternal(const TSharedPtr<FCameraActionInstance>& InCameraActionInstance);
+	void InterruptCameraActionForTracks(const TSharedPtr<FCameraActionInstance>& InCameraActionInstance);
 	void EnterCameraActionInternal(const TSharedPtr<FCameraActionInstance>& InCameraActionInstance);
 	void ResumeCameraActionInternal(const TSharedPtr<FCameraActionInstance>& InCameraActionInstance);
 	void UpdateCameraActionInternal(const TSharedPtr<FCameraActionInstance>& InCameraActionInstance, float DeltaTime);
