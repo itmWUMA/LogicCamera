@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
-#include "Track/CameraTrackList.h"
 #include "UObject/NoExportTypes.h"
 #include "CameraActionBase.generated.h"
 

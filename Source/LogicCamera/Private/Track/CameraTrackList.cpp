@@ -4,72 +4,151 @@
 #include "Track/CameraTrackList.h"
 
 #include "Core/LogicCameraStatics.h"
+#include "Core/LogicPlayerCameraManager.h"
 
-bool FCameraTrackValueCollection::Serialize(FArchive& Ar)
+void UCameraTrackList::InitTracks(TWeakObjectPtr<ALogicPlayerCameraManager> CamMgr)
 {
-	Ar << Roll;
-	Ar << Pitch;
-	Ar << Yaw;
-	Ar << ArmLength;
-	Ar << SocketOffset_X;
-	Ar << SocketOffset_Y;
-	Ar << SocketOffset_Z;
-	Ar << TargetOffset_X;
-	Ar << TargetOffset_Y;
-	Ar << TargetOffset_Z;
-	Ar << FOV;
-	return true;
-}
+	if (!Tracks.IsEmpty())
+		Tracks.Reset();
 
-float FCameraTrackValueCollection::operator[](unsigned int Index) const
-{
-	ensureMsgf(Index <= LC_CAMERA_TRACK_COUNT - 1, TEXT("Invalid track index [%d]"), Index);
-	return ULogicCameraStatics::GetValueFromTrackCollection(*this, static_cast<ECameraTrackType>(Index));
-}
-
-float& FCameraTrackValueCollection::operator[](unsigned int Index)
-{
-	ensureMsgf(Index <= LC_CAMERA_TRACK_COUNT - 1, TEXT("Invalid track index [%d]"), Index);
-	uint8 SearchIndex = 0;
-	for (TFieldIterator<FFloatProperty> i(FCameraTrackValueCollection::StaticStruct()); i; ++i)
+	uint8 Index = 0;
+	for (TFieldIterator<FFloatProperty> it(FCameraTrackValueCollection::StaticStruct()); it; ++it)
 	{
-		FFloatProperty* prop = CastField<FFloatProperty>(*i);
-		if (SearchIndex == Index) return *prop->ContainerPtrToValuePtr<float>(this);
-		SearchIndex++;
+		if (FFloatProperty* prop = *it)
+		{
+			Tracks.Push(FCameraTrack(Index));
+			Index++;
+		}
 	}
 
-	float* ErrorReturn = nullptr;
-	return *ErrorReturn;
+	CamMgrCache = CamMgr;
+	if (CamMgrCache.IsValid())
+	{
+		FCameraTrackValueCollection InitParams;
+		if (CollectCurrentTrackValues(CamMgrCache.Get(), InitParams))
+		{
+			for (uint8 i = 0; i < Tracks.Num(); ++i)
+			{
+				Tracks[i].UpdateCurValue(InitParams[i]);
+				Tracks[i].CurPriority.Priority = 0;
+			}
+		}
+	}
+}
+
+void UCameraTrackList::ResetTracks()
+{
+	for (int8 Index = LC_CAMERA_TRACK_COUNT - 1; Index >= 0; --Index)
+		Tracks[Index].StopTrack();
+	
+	CamMgrCache.Reset();
+	Tracks.Reset();
 }
 
 bool UCameraTrackList::GetCurrentTrackValues(FCameraTrackValueCollection& OutParams) const
 {
+	for (uint8 Index = 0; Index < Tracks.Num(); ++Index)
+		OutParams[Index] = Tracks[Index].CurValue;
 	return true;
 }
 
-void UCameraTrackList::ActiveTracks(const UCameraActionBase* InCameraAction, uint16& ActiveTracks,
-	const FCameraTrackValueCollection& TrackValues, uint64 Priority)
+bool UCameraTrackList::CollectCurrentTrackValues(const ALogicPlayerCameraManager* CamMgr,
+                                                 FCameraTrackValueCollection& OutParams) const
 {
-	
+	return CamMgr ? CamMgr->CollectCurrentTrackValues(OutParams) : false;
+}
+
+void UCameraTrackList::ActiveTracks(const UCameraActionBase* InCameraAction, uint16& ActiveTracks,
+                                    const FCameraTrackValueCollection& TrackValues, uint64 Priority)
+{
+	UpdateTracks(InCameraAction, ActiveTracks, TrackValues, Priority);
 }
 
 void UCameraTrackList::UpdateTracks(const UCameraActionBase* InCameraAction, uint16& ActiveTracks,
 	const FCameraTrackValueCollection& TrackValues, uint64 Priority)
 {
+	uint16 TrackID = 1;
+	for (int8 Index = LC_CAMERA_TRACK_COUNT - 1; Index >= 0; --Index)
+	{
+		if (ActiveTracks & TrackID)
+		{
+			if (Priority < Tracks[Index].CurPriority.Priority)
+			{
+				ActiveTracks &= ~TrackID;
+				TrackID = TrackID << 1;
+				continue;
+			}
+			
+			Tracks[Index].CameraActionCache = MakeWeakObjectPtr<const UCameraActionBase>(InCameraAction);
+			Tracks[Index].SetTargetValue(TrackValues[Index]);
+			BoundCameraActionParamsToTrack(Tracks[Index], InCameraAction);
 	
+			Tracks[Index].CurPriority.Priority = Priority;
+			Tracks[Index].bEffective = true;
+		}
+	
+		TrackID = TrackID << 1;
+	}
 }
 
-void UCameraTrackList::StopTracks(UCameraActionBase* InCameraAction, uint16 ActiveTracksID)
+void UCameraTrackList::StopTracks(UCameraActionBase* InCameraAction, uint16 ActiveTracks)
 {
-	
+	uint16 TrackID = 1;
+	for (int8 Index = LC_CAMERA_TRACK_COUNT - 1; Index >= 0; --Index)
+	{
+		if (ActiveTracks & TrackID)
+		{
+			if (InCameraAction != Tracks[Index].CameraActionCache)
+				continue;
+			Tracks[Index].StopTrack();
+		}
+		TrackID = TrackID << 1;
+	}
 }
 
 uint16 UCameraTrackList::CheckTracksOccupy(uint16 ActiveTracks, uint64 Priority) const
 {
-	return 0;
+	uint16 OccupiedTracks = 0;
+	uint16 TrackID = 1;
+	
+	for (int8 Index = LC_CAMERA_TRACK_COUNT - 1; Index >= 0; --Index)
+	{
+		if (ActiveTracks & TrackID)
+		{
+			if (Priority < Tracks[Index].CurPriority.Priority)
+			{
+				OccupiedTracks |= TrackID;
+				TrackID = TrackID << 1;
+				continue;
+			}
+		}
+		TrackID = TrackID << 1;
+	}
+
+	return OccupiedTracks;
 }
 
 bool UCameraTrackList::CheckTracksAllArrived(uint16 ActiveTracks) const
 {
-	return false;
+	uint16 TrackID = 1;
+	for (int8 Index = LC_CAMERA_TRACK_COUNT - 1; Index >= 0; --Index)
+	{
+		if (ActiveTracks & TrackID)
+		{
+			if (!Tracks[Index].IsArriveTarget())
+				return false;
+		}
+		TrackID = TrackID << 1;
+	}
+	return true;
+}
+
+void UCameraTrackList::BoundCameraActionParamsToTrack(FCameraTrack& Track, const UCameraActionBase* CameraAction)
+{
+	if (!IsValid(CameraAction))
+		return;
+
+	Track.SpeedData = CameraAction->InterpSpeedData;
+	Track.DownSpeedData = CameraAction->bUseDownInterpSpeed ? CameraAction->DownInterpSpeedData : CameraAction->InterpSpeedData;
+	Track.Tolerance = CameraAction->Tolerance;
 }

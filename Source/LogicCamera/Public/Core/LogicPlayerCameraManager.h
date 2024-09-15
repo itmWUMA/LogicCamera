@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Camera/PlayerCameraManager.h"
+#include "Track/CameraTrackList.h"
 #include "LogicPlayerCameraManager.generated.h"
 
 class ULogicDataConfig;
@@ -18,6 +19,8 @@ class LOGICCAMERA_API ALogicPlayerCameraManager : public APlayerCameraManager
 
 public:
 	virtual void AssignViewTarget(AActor* NewTarget, FTViewTarget& VT, struct FViewTargetTransitionParams TransitionParams) override;
+
+	bool CollectCurrentTrackValues(FCameraTrackValueCollection& OutParams) const;
 	
 protected:
 	virtual void BeginPlay() override;

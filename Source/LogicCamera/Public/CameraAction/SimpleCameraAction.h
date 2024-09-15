@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "CameraAction/CameraActionBase.h"
+#include "Core/LogicCameraDefines.h"
 #include "SimpleCameraAction.generated.h"
 
 /**

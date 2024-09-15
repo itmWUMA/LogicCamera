@@ -3,6 +3,8 @@
 
 #include "CameraAction/CameraActionBase.h"
 
+#include "Core/LogicCameraDefines.h"
+
 void UCameraActionBase::Prepare(ALogicPlayerCameraManager* CamMgr)
 {
 	OnPrepare(CamMgr);
