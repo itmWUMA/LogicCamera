@@ -168,7 +168,7 @@ void ULogicCameraActionManager::UpdateCameraAction(float DeltaTime)
 
 	for (const TSharedPtr<FCameraActionInstance>& PreFrameInst : PreFrameCameraAnimInstance)
 	{
-		if (PreFrameInst->CurrentState == ECameraActionState::Executing && !CurFrameCameraAnimInstance.Contains(PreFrameCameraAnimInstance))
+		if (PreFrameInst->CurrentState == ECameraActionState::Executing && !CurFrameCameraAnimInstance.Contains(PreFrameInst))
 		{
 			if (PreFrameInst->CurrentState == ECameraActionState::Finished)
 				continue;
