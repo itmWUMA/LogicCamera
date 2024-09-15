@@ -4,6 +4,7 @@
 #include "CameraAction/LogicCameraActionManager.h"
 
 #include "CameraAction/CameraActionBase.h"
+#include "CameraAction/InterruptPolicy/CameraActionInterruptPolicy.h"
 #include "Core/LogicCameraDefines.h"
 #include "Core/LogicDataConfig.h"
 #include "Core/LogicPlayerCameraManager.h"
@@ -33,6 +34,9 @@ void ULogicCameraActionManager::OnReset()
 void ULogicCameraActionManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (!CamMgrCache.IsValid())
+		return;
 
 	UpdatePendingRemoveCameraAction();
 	UpdateCameraAction(DeltaTime);
@@ -177,6 +181,27 @@ void ULogicCameraActionManager::UpdateCameraAction(float DeltaTime)
 	}
 
 	::Swap(PreFrameCameraAnimInstance, CurFrameCameraAnimInstance);
+
+	for (const TSharedPtr<FCameraActionInstance>& Inst : CameraActionList)
+	{
+		TWeakObjectPtr<UCameraActionBase> CameraAction = Inst->CameraActionCache;
+		if (!CameraAction.IsValid())
+			continue;
+	
+		// CA打断检测
+		ProcessInterruptPolicy(Inst);
+		
+		// 计时更新与结束判断
+		if (CameraAction->HowToEnd == EFinishCameraAnimBy::FixedDuration && !CameraAction->bIsInfinityDurationTime)
+		{
+			if (Inst->CurrentState == ECameraActionState::Interrupted && CameraAction->bIsContinuous && !CameraAction->bUpdateTimeWhenInterrupted)
+				continue;
+			
+			Inst->LeftEffectiveTime -= DeltaTime;
+			if (Inst->LeftEffectiveTime <= 0.f)
+				Inst->CurrentState = ECameraActionState::Finished;
+		}
+	}
 }
 
 void ULogicCameraActionManager::SortCameraActionList()
@@ -221,6 +246,8 @@ void ULogicCameraActionManager::InterruptCameraActionInternal(const TSharedPtr<F
 	{
 		if (InCameraActionInstance->CameraActionCache->bResumeByTrackOccupied)
 		{
+			InCameraActionInstance->BindingInfo.OnInterrupted.ExecuteIfBound();
+			InCameraActionInstance->CameraActionCache->Interrupt(CamMgrCache.Get());
 			InCameraActionInstance->CurrentState = ECameraActionState::Interrupted;
 			return;
 		}
@@ -244,6 +271,24 @@ void ULogicCameraActionManager::EnterCameraActionInternal(const TSharedPtr<FCame
 	InCameraActionInstance->ActiveTracks = ActiveTracks;
 	InCameraActionInstance->BindingInfo.OnExecute.ExecuteIfBound();
 	InCameraActionInstance->CurrentState = ECameraActionState::Executing;
+}
+
+void ULogicCameraActionManager::ResumeCameraActionInternal(const TSharedPtr<FCameraActionInstance>& InCameraActionInstance)
+{
+	if (!InCameraActionInstance->CameraActionCache.IsValid() || InCameraActionInstance->CurrentState != ECameraActionState::Interrupted)
+		return;
+	
+	FCameraTrackValueCollection CurTrackValues;
+	if (!CameraTrackList->GetCurrentTrackValues(CurTrackValues))
+		return;
+	
+	InCameraActionInstance->CameraActionCache->Resume(CamMgrCache.Get());
+	FCameraTrackValueCollection OutTrackValues;
+	uint16 ActiveTracks = InCameraActionInstance->CameraActionCache->Enter(CamMgrCache.Get(), CurTrackValues, OutTrackValues);
+	CameraTrackList->ActiveTracks(InCameraActionInstance->CameraActionCache.Get(), ActiveTracks, OutTrackValues, InCameraActionInstance->GetPriority());
+	InCameraActionInstance->ActiveTracks = ActiveTracks;
+	InCameraActionInstance->CurrentState = ECameraActionState::Executing;
+	InCameraActionInstance->CurInterruptTag = FGameplayTag::EmptyTag;
 }
 
 void ULogicCameraActionManager::UpdateCameraActionInternal(const TSharedPtr<FCameraActionInstance>& InCameraActionInstance, float DeltaTime)
@@ -277,6 +322,53 @@ void ULogicCameraActionManager::UpdateCameraActionInternal(const TSharedPtr<FCam
 		if (InCameraActionInstance->CameraActionCache->HowToEnd == EFinishCameraAnimBy::ArrivedTargetPos)
 		{
 			InCameraActionInstance->CurrentState = ECameraActionState::Finished;
+		}
+	}
+}
+
+void ULogicCameraActionManager::ProcessInterruptPolicy(const TSharedPtr<FCameraActionInstance>& InCameraActionInstance)
+{
+	if (!CamMgrCache->LogicCameraSettings || !InCameraActionInstance->CameraActionCache.IsValid())
+		return;
+	
+	TWeakObjectPtr<UCameraActionBase> CameraAction = InCameraActionInstance->CameraActionCache;
+	
+	for (const auto& InterruptPolicyPair : CamMgrCache->LogicCameraSettings->CameraActionInterruptPolicies)
+	{
+		TObjectPtr<UCameraActionInterruptPolicy> Policy = InterruptPolicyPair.Value.InterruptPolicy;
+		if (!Policy)
+			continue;
+			
+		// 若已激活的轨道不在打断策略检查范围内，无需继续检查
+		if ((InCameraActionInstance->ActiveTracks & Policy->GetCheckTrackBitValue()) == 0)
+			continue;
+	
+		// 检查是否可以打断
+		bool bShouldInterrupt = Policy->CheckInterruptCondition(CamMgrCache.Get(), CameraAction.Get());
+		
+		if (CameraAction->bIsContinuous && CameraAction->ResumeByInterruptPolicyTags.HasTagExact(InterruptPolicyPair.Key))
+		{
+			if (bShouldInterrupt)
+			{
+				InCameraActionInstance->CurrentState = ECameraActionState::Interrupted;
+				InCameraActionInstance->CurInterruptTag = InterruptPolicyPair.Key;
+				InCameraActionInstance->BindingInfo.OnInterrupted.ExecuteIfBound();
+				CameraAction->Interrupt(CamMgrCache.Get());
+				CameraTrackList->StopTracks(CameraAction.Get(), InCameraActionInstance->ActiveTracks);
+			}
+			else
+			{
+				if (InCameraActionInstance->CurrentState == ECameraActionState::Interrupted &&
+					InCameraActionInstance->CurInterruptTag == InterruptPolicyPair.Key)
+				{
+					ResumeCameraActionInternal(InCameraActionInstance);
+				}
+			}
+		}
+		else
+		{
+			if (bShouldInterrupt)
+				InCameraActionInstance->CurrentState = ECameraActionState::Finished;
 		}
 	}
 }

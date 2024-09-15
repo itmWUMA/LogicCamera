@@ -132,4 +132,8 @@ public:
 	// 当相机行为因其他扩展打断策略而恢复时，是否重新执行相机行为（扩展打断策略见LogicCameraDataConfig）
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Continuous", meta = (EditCondition = "bIsContinuous", EditConditionHides))
 	FGameplayTagContainer ResumeByInterruptPolicyTags;
+
+	// 当相机行为被打断时是否仍更新时间
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Continuous", meta = (EditCondition = "bIsContinuous", EditConditionHides))
+	bool bUpdateTimeWhenInterrupted = true;
 };

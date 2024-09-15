@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "Core/LogicCameraDefines.h"
 
 class UCameraActionBase;
@@ -64,4 +65,5 @@ public:
 	CameraActionPriority Priority;
 	uint16 ActiveTracks = 0;
 	float LeftEffectiveTime = 0.f;
+	FGameplayTag CurInterruptTag = FGameplayTag::EmptyTag;
 };

@@ -48,13 +48,14 @@ private:
 	
 	void UpdatePendingRemoveCameraAction();
 	void UpdateCameraAction(float DeltaTime);
-
+	
 	void SortCameraActionList();
-
 	void FinishCameraActionInternal(const TSharedPtr<FCameraActionInstance>& InCameraActionInstance);
 	void InterruptCameraActionInternal(const TSharedPtr<FCameraActionInstance>& InCameraActionInstance);
 	void EnterCameraActionInternal(const TSharedPtr<FCameraActionInstance>& InCameraActionInstance);
+	void ResumeCameraActionInternal(const TSharedPtr<FCameraActionInstance>& InCameraActionInstance);
 	void UpdateCameraActionInternal(const TSharedPtr<FCameraActionInstance>& InCameraActionInstance, float DeltaTime);
+	void ProcessInterruptPolicy(const TSharedPtr<FCameraActionInstance>& InCameraActionInstance);
 
 private:
 	// 相机实例的容器
