@@ -44,6 +44,8 @@ public:
 	// 移除相机实例
 	void RemoveCameraAction(const FGuid& InGuid);
 
+	static void ShowTracksDebug();
+
 private:
 	// 生成CameraActionInstance，并赋予其唯一ID
 	TSharedPtr<FCameraActionInstance> GenerateCameraActionInstance(UCameraActionBase* Source, const FCameraActionBindData& BindingInfo) const;
@@ -70,4 +72,6 @@ private:
 	TArray<TSharedPtr<FCameraActionInstance>> PreFrameCameraAnimInstance;
 	
 	static uint32 CameraActionDynamicPriority;
+	
+	bool bEnableCameraTrackDebug = false;
 };

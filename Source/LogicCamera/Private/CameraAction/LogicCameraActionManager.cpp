@@ -21,10 +21,13 @@ void ULogicCameraActionManager::OnInit(ALogicPlayerCameraManager* LogicPlayerCam
 {
 	CamMgrCache = MakeWeakObjectPtr<ALogicPlayerCameraManager>(LogicPlayerCameraManager);
 	CameraTrackList = NewObject<UCameraTrackList>(this);
+	CameraTrackList->InitTracks(CamMgrCache);
 }
 
 void ULogicCameraActionManager::OnReset()
 {
+	if (CameraTrackList)
+		CameraTrackList->ResetTracks();
 	CameraActionList.Reset();
 	CamMgrCache.Reset();
 	CameraActionDynamicPriority = 0;
@@ -40,6 +43,13 @@ void ULogicCameraActionManager::Tick(float DeltaTime)
 
 	UpdatePendingRemoveCameraAction();
 	UpdateCameraAction(DeltaTime);
+
+	CameraTrackList->Update(DeltaTime);
+
+	if (bEnableCameraTrackDebug)
+	{
+		CameraTrackList->ShowTracksDebug();
+	}
 }
 
 TStatId ULogicCameraActionManager::GetStatId() const
@@ -100,6 +110,17 @@ void ULogicCameraActionManager::RemoveCameraAction(const FGuid& InGuid)
 	{
 		if (TSharedPtr<FCameraActionInstance> Inst = FindCameraAction(InGuid); Inst.IsValid())
 			Inst->CurrentState = ECameraActionState::Finished;
+	}
+}
+
+void ULogicCameraActionManager::ShowTracksDebug()
+{
+	if (!GEngine || !GEngine->GameViewport)
+		return;
+	
+	if (ULogicCameraActionManager* Mgr = Get(GEngine->GameViewport))
+	{
+		Mgr->bEnableCameraTrackDebug = !Mgr->bEnableCameraTrackDebug;
 	}
 }
 

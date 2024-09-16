@@ -38,6 +38,9 @@ void UCameraTrackList::InitTracks(TWeakObjectPtr<ALogicPlayerCameraManager> CamM
 
 void UCameraTrackList::ResetTracks()
 {
+	if (Tracks.IsEmpty())
+		return;
+	
 	for (int8 Index = LC_CAMERA_TRACK_COUNT - 1; Index >= 0; --Index)
 		Tracks[Index].StopTrack();
 	
@@ -141,6 +144,27 @@ bool UCameraTrackList::CheckTracksAllArrived(uint16 ActiveTracks) const
 		TrackID = TrackID << 1;
 	}
 	return true;
+}
+
+void UCameraTrackList::Update(float DeltaTime)
+{
+	// 更新轨道值计算
+	for (FCameraTrack& Track : Tracks)
+		Track.Update(DeltaTime);
+
+	//TODO 应用轨道值
+}
+
+void UCameraTrackList::ShowTracksDebug() const
+{
+	if (!GEngine)
+		return;
+
+	uint64 Channel = LC_CAMERA_TRACK_DEBUG_CHANNEL;
+	for (const FCameraTrack& Track : Tracks)
+	{
+		GEngine->AddOnScreenDebugMessage(Channel++, 0.05f, FColor::Orange, Track.GetDebugInfo());
+	}
 }
 
 void UCameraTrackList::BoundCameraActionParamsToTrack(FCameraTrack& Track, const UCameraActionBase* CameraAction)

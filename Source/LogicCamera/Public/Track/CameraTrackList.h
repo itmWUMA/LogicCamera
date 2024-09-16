@@ -33,6 +33,10 @@ public:
 	uint16 CheckTracksOccupy(uint16 ActiveTracks, uint64 Priority) const;
 	bool CheckTracksAllArrived(uint16 ActiveTracks) const;
 
+	void Update(float DeltaTime);
+
+	void ShowTracksDebug() const;
+
 private:
 	void BoundCameraActionParamsToTrack(FCameraTrack& Track, const UCameraActionBase* CameraAction);
 

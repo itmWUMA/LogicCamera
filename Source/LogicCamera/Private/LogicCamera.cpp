@@ -2,17 +2,21 @@
 
 #include "LogicCamera.h"
 
+#include "CameraAction/LogicCameraActionManager.h"
+#include "HAL/ConsoleManager.h"
+
 #define LOCTEXT_NAMESPACE "FLogicCameraModule"
 
 void FLogicCameraModule::StartupModule()
 {
-	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
+	FConsoleManager::Get().RegisterConsoleCommand(TEXT("LogicCamera.ShowTrackInfo"),
+		TEXT("Show all camera tracks information"),
+		FConsoleCommandDelegate::CreateStatic(&ULogicCameraActionManager::ShowTracksDebug),
+		ECVF_Default);
 }
 
 void FLogicCameraModule::ShutdownModule()
 {
-	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
-	// we call this function before unloading the module.
 }
 
 #undef LOCTEXT_NAMESPACE

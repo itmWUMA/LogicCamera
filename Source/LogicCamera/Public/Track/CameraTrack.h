@@ -28,6 +28,11 @@ struct LOGICCAMERA_API FCameraTrack
 
 	void StopTrack();
 	bool IsArriveTarget() const;
+
+	// 轨道值更新，当前轨道会插值到目标轨道
+	void Update(float DeltaTime);
+
+	FString GetDebugInfo() const;
 	
 	uint8 TrackID = 0;
 	CameraActionPriority CurPriority;
