@@ -4,9 +4,11 @@
 #include "Core/LogicPlayerCameraManager.h"
 
 #include "CameraAction/LogicCameraActionManager.h"
+#include "Core/LogicDataConfig.h"
+#include "Core/LogicMainCamera.h"
 
 void ALogicPlayerCameraManager::AssignViewTarget(AActor* NewTarget, FTViewTarget& VT,
-	struct FViewTargetTransitionParams TransitionParams)
+                                                 struct FViewTargetTransitionParams TransitionParams)
 {
 	Super::AssignViewTarget(NewTarget, VT, TransitionParams);
 
@@ -21,9 +23,25 @@ bool ALogicPlayerCameraManager::CollectCurrentTrackValues(FCameraTrackValueColle
 	return true;
 }
 
+void ALogicPlayerCameraManager::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	if (!LogicCameraSettings)
+		return;
+	
+	ALogicMainCamera* MainCamera = GetWorld()->SpawnActor<ALogicMainCamera>(LogicCameraSettings->MainCameraClass);
+	MainCameraCache = MainCamera;
+}
+
 void ALogicPlayerCameraManager::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (!MainCameraCache.IsValid())
+		return;
+
+	SetViewTarget(MainCameraCache.Get());
 
 	if (ULogicCameraActionManager* CameraActionMgr = ULogicCameraActionManager::Get(this))
 	{

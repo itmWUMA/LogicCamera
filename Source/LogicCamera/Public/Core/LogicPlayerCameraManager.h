@@ -7,6 +7,7 @@
 #include "Track/CameraTrackList.h"
 #include "LogicPlayerCameraManager.generated.h"
 
+class ALogicMainCamera;
 class ULogicDataConfig;
 
 /**
@@ -21,6 +22,8 @@ public:
 	virtual void AssignViewTarget(AActor* NewTarget, FTViewTarget& VT, struct FViewTargetTransitionParams TransitionParams) override;
 
 	bool CollectCurrentTrackValues(FCameraTrackValueCollection& OutParams) const;
+
+	virtual void PostInitializeComponents() override;
 	
 protected:
 	virtual void BeginPlay() override;
@@ -28,4 +31,7 @@ protected:
 public:
 	UPROPERTY(EditDefaultsOnly, Category = "Settings")
 	TObjectPtr<ULogicDataConfig> LogicCameraSettings;
+
+protected:
+	TWeakObjectPtr<ALogicMainCamera> MainCameraCache = nullptr;
 };

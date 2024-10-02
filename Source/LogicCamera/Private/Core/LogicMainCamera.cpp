@@ -8,7 +8,7 @@
 
 ALogicMainCamera::ALogicMainCamera()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 
 	RootComponent = CreateDefaultSubobject<USceneComponent>("Root");
 
@@ -21,6 +21,41 @@ ALogicMainCamera::ALogicMainCamera()
 	
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>("CameraComponent");
 	CameraComponent->SetupAttachment(SpringArmComponent);
+}
+
+void ALogicMainCamera::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	if (CurrentFollowActor.IsValid())
+	{
+		SetActorLocation(CurrentFollowActor->GetActorLocation());
+	}
+}
+
+void ALogicMainCamera::BecomeViewTarget(class APlayerController* PC)
+{
+	Super::BecomeViewTarget(PC);
+
+	if (IsValid(PC))
+	{
+		DefaultFollowActor = PC->GetPawn();
+		CurrentFollowActor = DefaultFollowActor;
+		
+	}
+}
+
+void ALogicMainCamera::EndViewTarget(class APlayerController* PC)
+{
+	DefaultFollowActor.Reset();
+	CurrentFollowActor.Reset();
+	
+	Super::EndViewTarget(PC);
+}
+
+AActor* ALogicMainCamera::GetFollowedTarget() const
+{
+	return CurrentFollowActor.Get();
 }
 
 void ALogicMainCamera::BeginPlay()

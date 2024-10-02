@@ -20,6 +20,12 @@ class LOGICCAMERA_API ALogicMainCamera : public AActor
 	
 public:	
 	ALogicMainCamera();
+	virtual void Tick(float DeltaSeconds) override;
+	virtual void BecomeViewTarget(class APlayerController* PC) override;
+	virtual void EndViewTarget(class APlayerController* PC) override;
+
+	UFUNCTION(BlueprintPure, Category = "Camera")
+	AActor* GetFollowedTarget() const;
 
 protected:
 	virtual void BeginPlay() override;
@@ -30,4 +36,7 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Logic Camera")
 	TObjectPtr<USpringArmComponent> SpringArmComponent;
+
+	TWeakObjectPtr<AActor> DefaultFollowActor = nullptr;
+	TWeakObjectPtr<AActor> CurrentFollowActor = nullptr;
 };
