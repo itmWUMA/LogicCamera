@@ -22,6 +22,7 @@ public:
 	virtual void AssignViewTarget(AActor* NewTarget, FTViewTarget& VT, struct FViewTargetTransitionParams TransitionParams) override;
 
 	bool CollectCurrentTrackValues(FCameraTrackValueCollection& OutParams) const;
+	FORCEINLINE ALogicMainCamera* GetMainCamera() const { return MainCameraCache.Get(); }
 
 	virtual void PostInitializeComponents() override;
 	

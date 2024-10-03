@@ -20,7 +20,7 @@ void ALogicPlayerCameraManager::AssignViewTarget(AActor* NewTarget, FTViewTarget
 
 bool ALogicPlayerCameraManager::CollectCurrentTrackValues(FCameraTrackValueCollection& OutParams) const
 {
-	return true;
+	return MainCameraCache.IsValid() ? MainCameraCache->CollectCurrentTrackValues(OutParams) : false;
 }
 
 void ALogicPlayerCameraManager::PostInitializeComponents()

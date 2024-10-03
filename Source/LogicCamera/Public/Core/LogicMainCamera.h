@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Track/CameraTrack.h"
 #include "LogicMainCamera.generated.h"
 
 class USpringArmComponent;
@@ -24,6 +25,9 @@ public:
 	virtual void BecomeViewTarget(class APlayerController* PC) override;
 	virtual void EndViewTarget(class APlayerController* PC) override;
 
+	void ApplyTrackValue(const FCameraTrack& Track);
+	bool CollectCurrentTrackValues(FCameraTrackValueCollection& OutParams) const;
+
 	UFUNCTION(BlueprintPure, Category = "Camera")
 	AActor* GetFollowedTarget() const;
 
@@ -33,8 +37,16 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Camera")
 	void ResetFollowCameraToDefault();
 
+	UFUNCTION(BlueprintPure, Category = "Camera")
+	FRotator GetCurrentViewRotation() const;
+
 protected:
 	virtual void BeginPlay() override;
+
+private:
+	void ApplyRotation(const FCameraTrack& Track);
+	void ApplySpringArm(const FCameraTrack& Track);
+	void ApplyCameraComponent(const FCameraTrack& Track);
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Logic Camera")

@@ -4,6 +4,7 @@
 #include "Track/CameraTrackList.h"
 
 #include "Core/LogicCameraStatics.h"
+#include "Core/LogicMainCamera.h"
 #include "Core/LogicPlayerCameraManager.h"
 
 void UCameraTrackList::InitTracks(TWeakObjectPtr<ALogicPlayerCameraManager> CamMgr)
@@ -152,7 +153,14 @@ void UCameraTrackList::Update(float DeltaTime)
 	for (FCameraTrack& Track : Tracks)
 		Track.Update(DeltaTime);
 
-	//TODO 应用轨道值
+	// 应用轨道值
+	if (CamMgrCache.IsValid() && IsValid(CamMgrCache->GetMainCamera()))
+	{
+		for (FCameraTrack& Track : Tracks)
+			CamMgrCache->GetMainCamera()->ApplyTrackValue(Track);
+
+		//TODO 边界值限制
+	}
 }
 
 void UCameraTrackList::ShowTracksDebug() const
