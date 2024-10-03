@@ -27,6 +27,12 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Camera")
 	AActor* GetFollowedTarget() const;
 
+	UFUNCTION(BlueprintCallable, Category = "Camera")
+	void StopFollowCamera();
+
+	UFUNCTION(BlueprintCallable, Category = "Camera")
+	void ResetFollowCameraToDefault();
+
 protected:
 	virtual void BeginPlay() override;
 

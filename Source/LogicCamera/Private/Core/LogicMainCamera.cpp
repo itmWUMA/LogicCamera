@@ -58,6 +58,16 @@ AActor* ALogicMainCamera::GetFollowedTarget() const
 	return CurrentFollowActor.Get();
 }
 
+void ALogicMainCamera::StopFollowCamera()
+{
+	CurrentFollowActor.Reset();
+}
+
+void ALogicMainCamera::ResetFollowCameraToDefault()
+{
+	CurrentFollowActor = DefaultFollowActor;
+}
+
 void ALogicMainCamera::BeginPlay()
 {
 	Super::BeginPlay();
