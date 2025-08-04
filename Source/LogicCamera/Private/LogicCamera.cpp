@@ -9,7 +9,7 @@
 
 void FLogicCameraModule::StartupModule()
 {
-	FConsoleManager::Get().RegisterConsoleCommand(TEXT("LogicCamera.ShowTrackInfo"),
+	IConsoleManager::Get().RegisterConsoleCommand(TEXT("LogicCamera.ShowTrackInfo"),
 		TEXT("Show all camera tracks information"),
 		FConsoleCommandDelegate::CreateStatic(&ULogicCameraActionManager::ShowTracksDebug),
 		ECVF_Default);
